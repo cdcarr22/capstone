@@ -2,6 +2,8 @@
 #define SNAKE_H
 
 #include <vector>
+#include <condition_variable>
+#include <thread>
 #include "SDL.h"
 
 class Snake {
@@ -17,6 +19,7 @@ class Snake {
   void Update();
 
   void GrowBody();
+  void MakeInvulnerable(bool &&condition);
   bool SnakeCell(int x, int y);
 
   Direction direction = Direction::kUp;
@@ -33,6 +36,7 @@ class Snake {
   void UpdateBody(SDL_Point &current_cell, SDL_Point &prev_cell);
 
   bool growing{false};
+  bool invulnerable{false};
   int grid_width;
   int grid_height;
 };

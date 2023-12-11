@@ -1,10 +1,9 @@
 #include "game.h"
+#include "filewrite.h"
 #include <iostream>
 #include <memory>
 #include "SDL.h"
 #include <algorithm>
-#include <condition_variable>
-#include <thread>
 #include "poison.h"
 
 Game::Game(std::size_t grid_width, std::size_t grid_height)
@@ -28,6 +27,10 @@ void Game::Run(Controller const &controller, Renderer &renderer,
   int frame_count_poison = 0;
   bool running = true;
 
+  Print("Player1");
+
+  
+
   while (running) {
     frame_start = SDL_GetTicks();
 
@@ -50,7 +53,7 @@ void Game::Run(Controller const &controller, Renderer &renderer,
       title_timestamp = frame_end;
     }
 
-  if (frame_end - poison_timestamp >= 2000) {
+  if (frame_end - poison_timestamp >= 8000) {
       std::shared_ptr<Poison> pp = std::make_unique<Poison>();
       AddPoison(pp);
       frame_count_poison = 0;
@@ -65,6 +68,25 @@ void Game::Run(Controller const &controller, Renderer &renderer,
     }
   }
 }
+
+void Game::doWork() {
+  std::cout << "Thread is running" << "\n";
+  invulnerable = true;
+  std::this_thread::sleep_for(std::chrono::seconds(10));
+  
+  {
+  std::unique_lock<std::mutex> lock(mtx);
+  cv.wait_for(lock, std::chrono::seconds(10), [this]{ return condition; });
+  condition = true;
+
+  }
+        std::cout << "Work is done!" << std::endl;
+      PlacePowerup();
+      
+  
+  invulnerable=false;
+  cv.notify_one();
+  }
 
 void Game::PlaceFood() {
   int x, y;
@@ -96,11 +118,16 @@ void Game::PlacePowerup() {
   }
 }
 
-  void Game::AddPoison(std::shared_ptr<Poison> poison) {
 
+
+  void Game::AddPoison(std::shared_ptr<Poison> poison) {
+      //std::lock_guard<std::mutex> lock(mtx);
       _poisons.push_back(poison);
 
   }
+
+  
+
 
 void Game::Update() {
   if (!snake.alive) return;
@@ -109,24 +136,41 @@ void Game::Update() {
 
   int new_x = static_cast<int>(snake.head_x);
   int new_y = static_cast<int>(snake.head_y);
-
+  //std::lock_guard<std::mutex> lock(mtx);
+  
   for (auto point : _poisons) {
+    
     auto p = (*point).GetPoint();
+
     if (p.x == new_x && p.y == new_y) {
-      score++;
-      auto y = find(_poisons.begin(), _poisons.end(), point) - _poisons.begin();
-      _poisons.erase(_poisons.begin() + y);
-      snake.speed = -0.05;
-      return;
+      File file("score.txt");
+      if (invulnerable==false) {
+        score--;
+
+        auto y = find(_poisons.begin(), _poisons.end(), point) - _poisons.begin();
+        _poisons.erase(_poisons.begin() + y);
+        snake.speed += 0.05;
+        
+        return;
+      } else {
+        score++;
+        auto y = find(_poisons.begin(), _poisons.end(), point) - _poisons.begin();
+        _poisons.erase(_poisons.begin() + y);
+      }
+      file.write(score, snake.size,"Player1");
     }
 
   }
   
+  
 
   // Check if there's food over here
   if (food.x == new_x && food.y == new_y) {
+    File file("score.txt");
     score++;
     PlaceFood();
+    Print(score);
+    file.write(score, snake.size,"Player1");
     // Grow snake and increase speed.
     snake.GrowBody();
     if (snake.speed<0) {
@@ -137,25 +181,19 @@ void Game::Update() {
   }
 
   if (powerup.x == new_x && powerup.y == new_y) {
+    //doWork();
+      invulnerable = true;
+      condition = false;
+      powerup.x=1000000;
+      powerup.y=1000000;
+      std::thread t1([this] {doWork();});
+      t1.detach();
+      
 
-    void PlacePowerup();
-    //std::unique_lock<std::mutex> lock(mtx);
-    //cv.wait(lock, [] { return condition; });
-    // Grow snake and increase speed.
-    //snake.GrowBody();
 
   }
 
 
-/*
-  if (std::find(poison.begin(),poison.end(),poison.front()) != poison.end()) {
-    std::cout << "Found Poison!" << "\n";
-    score--;
-    // Grow snake and increase speed.
-    //snake.GrowBody();
-    snake.speed += 0.02;
-  }
-  */
 }
 
 

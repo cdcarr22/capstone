@@ -45,26 +45,40 @@ This work is licensed under a
 
 ## New Features
 
+The new features of the game include poison and powerup blocks. Every 10 seconds a new poision block is added to the game. When the snake eats a poison block the score is decreased by 1. The powerup block is used to turn the poison blocks into food blocks for 10 seconds.
+
 ## Rubric Points Addresses
 
 ### Loops, Functions, I/O
 
 - [x] This project demonstrates an understanding of C++ functions and control structures
-- [X] This project uses data structures and immutable variables
+  - [x] In game.cpp lines 132 to 136
+- [x] This project uses data structures and immutable variables
+  - [x] Vectors are used in game.h on lines 27 and 28
+- [x] This program writes to a data file.
+  - [x] filewrite.h
 
 ### Object Oriented Programming
 
 - [x] Class contructors utilize member initialization lists
-- [ ] One function in overloaded with different signatures for the same function name
-- [ ] Templates generalize functions or classes in the project
+  - [x] In poison.h starting with line 10
+- [x] One function in overloaded with different signatures for the same function name
+  - [x] In game.cpp lines 132 and 31
+- [x] One or more classes are added to the project with appropriate access specifiers
+  - [x] poison.h and filewrite.h
 
 ### Memory Management
 
-- [ ] This project follows the rule of 5
-- [ ] The project uses move semantics to move data instead of copying it, where possible.
-- [x] Thisp roject uses smart pointers instead of raw pointers
+- [x] This project makes use of references
+  - [x] filewrite.h line 10 and line 21
+- [x] This project uses destructors appropriately
+  - [x] In renderer.cpp line 36 and filewrite.h line 16
+- [x] This project uses smart pointers instead of raw pointers
+  - [x] Shared pointer is used in game.cpp line 54
 
 ### Concurrency
 
-- [ ] A mutex or lock is used in the project
-- [ ] A condition variable is used in the project
+- [x] A mutex or lock is used in the project
+  - [x] In game.cpp line 78
+- [x] A condition variable is used in the project
+  - [x] In game.cpp lines 9
